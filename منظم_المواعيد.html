@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>منظم المواعيد</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="منظم المواعيد">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f0f4f8;color:#2d3748;min-height:100vh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+        .header{background:linear-gradient(135deg,#1a365d,#2b6cb0);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+        .header h1{font-size:20px;display:flex;align-items:center;gap:8px}
+        .header-date{font-size:11px;opacity:.9;background:rgba(255,255,255,.15);padding:6px 14px;border-radius:20px}
+        .container{padding:12px;max-width:500px;margin:0 auto}
+        .panel{background:#fff;border-radius:16px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.05);margin-bottom:12px}
+        .panel h3{font-size:16px;margin-bottom:14px;color:#1a365d;border-bottom:2px solid #e2e8f0;padding-bottom:8px}
+        .form-group{margin-bottom:12px}
+        .form-group label{display:block;font-weight:600;margin-bottom:4px;font-size:13px;color:#4a5568}
+        .form-group input,.form-group select,.form-group textarea{width:100%;padding:12px;border:1.5px solid #e2e8f0;border-radius:12px;font-size:16px;font-family:inherit;background:#f8fafc;-webkit-appearance:none}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#4299e1;background:#fff;box-shadow:0 0 0 3px rgba(66,153,225,.15)}
+        .form-group textarea{resize:vertical;min-height:60px}
+        .form-row{display:flex;gap:8px}.form-row .form-group{flex:1}
+        .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
+        .btn:active{transform:scale(.97)}
+        .btn-primary{background:linear-gradient(135deg,#2b6cb0,#4299e1);color:#fff}
+        .btn-warning{background:#ed8936;color:#fff}
+        .btn-danger{background:#e53e3e;color:#fff}
+        .btn-secondary{background:#e2e8f0;color:#4a5568;margin-top:8px}
+        .btn-sm{padding:8px 14px;font-size:14px;width:auto;border-radius:8px}
+        .btn-group{display:flex;gap:8px}
+        .view-tabs{display:flex;gap:3px;background:#fff;border-radius:14px;padding:4px;box-shadow:0 1px 8px rgba(0,0,0,.05);position:sticky;top:55px;z-index:50}
+        .view-tab{flex:1;padding:10px 4px;text-align:center;border:none;background:transparent;font-size:12px;font-weight:600;cursor:pointer;border-radius:10px;color:#718096;font-family:inherit}
+        .view-tab.active{background:#2b6cb0;color:#fff}
+        .calendar-panel{background:#fff;border-radius:16px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+        .calendar-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:6px}
+        .calendar-nav h2{font-size:15px;color:#1a365d;text-align:center;flex:1}
+        .nav-btn{width:36px;height:36px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:#4a5568;flex-shrink:0}
+        .nav-btn:active{background:#edf2f7;transform:scale(.93)}
+        .btn-today{padding:8px 12px;border:1.5px solid #2b6cb0;border-radius:10px;background:#fff;color:#2b6cb0;font-weight:600;cursor:pointer;font-family:inherit;font-size:12px;white-space:nowrap;flex-shrink:0}
+        .btn-today:active{background:#2b6cb0;color:#fff}
+        .hour-row{display:flex;border-bottom:1px solid #f0f0f0;min-height:40px}
+        .hour-label{width:48px;padding:10px 4px;font-size:10px;color:#a0aec0;text-align:left;border-left:1px solid #edf2f7;flex-shrink:0}
+        .hour-slots{flex:1;padding:4px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+        .chip{padding:5px 10px;border-radius:8px;font-size:11px;cursor:pointer;color:#fff;font-weight:500;white-space:nowrap}
+        .chip:active{transform:scale(1.05)}
+        .p-high{background:#e53e3e}.p-med{background:#ed8936}.p-low{background:#38a169}
+        .empty{text-align:center;padding:40px;color:#a0aec0}
+        .empty span{font-size:45px;display:block;margin-bottom:8px}
+        .weekly-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+        .weekly-grid{display:grid;grid-template-columns:35px repeat(7,1fr);gap:1px;font-size:9px}
+        .weekly-header{text-align:center;padding:8px 1px;font-weight:700;font-size:10px;color:#4a5568;background:#f7fafc;border-radius:4px}
+        .weekly-header.today{background:#2b6cb0;color:#fff}
+        .weekly-time{font-size:8px;color:#a0aec0;text-align:center;padding:3px 0}
+        .weekly-cell{min-height:26px;border-radius:3px;padding:1px;font-size:8px;background:#fafafa;overflow:hidden}
+        .weekly-cell.today{background:#ebf4ff}
+        .w-appt{padding:2px 3px;border-radius:3px;cursor:pointer;color:#fff;margin:1px 0;font-size:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .monthly-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+        .monthly-day{text-align:center;padding:8px 2px;font-weight:700;color:#4a5568;font-size:10px}
+        .month-cell{min-height:65px;border-radius:8px;padding:4px;background:#f8fafc;border:1px solid #edf2f7;cursor:pointer;overflow:hidden}
+        .month-cell:active{background:#ebf8ff}
+        .month-cell.today{border:2px solid #2b6cb0;background:#ebf8ff}
+        .month-cell.other{opacity:.35}
+        .month-num{font-weight:700;font-size:12px;margin-bottom:2px}
+        .m-appt{padding:1px 4px;border-radius:3px;color:#fff;font-size:8px;margin:1px 0;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .m-more{font-size:8px;color:#718096}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:6px 0 env(safe-area-inset-bottom,6px);border-top:1px solid #e2e8f0;z-index:100}
+        .bottom-nav button{display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:transparent;cursor:pointer;font-family:inherit;font-size:10px;color:#a0aec0}
+        .bottom-nav button.active{color:#2b6cb0}
+        .bottom-nav button span:first-child{font-size:20px}
+        .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:flex-end;justify-content:center}
+        .modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom,0));width:100%;max-width:500px;max-height:80vh;overflow-y:auto}
+        .modal-handle{width:36px;height:4px;background:#cbd5e0;border-radius:2px;margin:0 auto 14px}
+        .modal h3{margin-bottom:12px;color:#1a365d;font-size:17px}
+        .modal p{margin-bottom:6px;font-size:14px}
+        .up-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #edf2f7;cursor:pointer;gap:8px}
+        .up-item:active{background:#f7fafc;margin:0 -16px;padding:10px 16px;border-radius:8px}
+        .spacer{height:70px}
+        ::-webkit-scrollbar{width:0;height:0}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📅 منظم المواعيد</h1>
+        <div class="header-date" id="headerDate"></div>
+    </div>
+
+    <div class="container">
+        <div id="pgAdd">
+            <div class="panel">
+                <h3 id="formTitle">➕ إضافة موعد جديد</h3>
+                <div class="form-group"><label>عنوان الموعد *</label><input type="text" id="t" placeholder="مثال: اجتماع مع الفريق" autocomplete="off"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>التاريخ *</label><input type="date" id="d"></div>
+                    <div class="form-group"><label>الوقت *</label><input type="time" id="tm"></div>
+                </div>
+                <div class="form-group"><label>الأهمية</label><select id="p"><option value="high">🔴 عالية</option><option value="medium" selected>🟠 متوسطة</option><option value="low">🟢 منخفضة</option></select></div>
+                <div class="form-group"><label>وصف (اختياري)</label><textarea id="desc" placeholder="تفاصيل إضافية..."></textarea></div>
+                <input type="hidden" id="eid" value="">
+                <button class="btn btn-primary" onclick="save()" id="btnSave">💾 حفظ الموعد</button>
+                <button class="btn btn-secondary" id="btnCancel" style="display:none" onclick="cancel()">❌ إلغاء التعديل</button>
+            </div>
+            <div class="panel"><h3>📋 المواعيد القادمة</h3><div id="upList" style="max-height:300px;overflow-y:auto;"></div></div>
+        </div>
+        <div id="pgCal" style="display:none">
+            <div class="view-tabs">
+                <button class="view-tab active" onclick="sv('daily')" id="tabDaily">📆 يومي</button>
+                <button class="view-tab" onclick="sv('weekly')" id="tabWeekly">📅 أسبوعي</button>
+                <button class="view-tab" onclick="sv('monthly')" id="tabMonthly">🗓️ شهري</button>
+            </div>
+            <div class="calendar-panel" id="calPanel"></div>
+        </div>
+        <div class="spacer"></div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="active" onclick="sp('add')" id="navAdd"><span>➕</span><span>إضافة</span></button>
+        <button onclick="sp('cal')" id="navCal"><span>📅</span><span>التقويم</span></button>
+    </div>
+
+    <div class="modal-overlay" id="mo" style="display:none" onclick="cm(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-handle"></div>
+            <h3 id="mtitle"></h3>
+            <div id="mcontent"></div>
+            <div class="btn-group" style="margin-top:14px">
+                <button class="btn btn-warning btn-sm" id="me">✏️ تعديل</button>
+                <button class="btn btn-danger btn-sm" id="md">🗑️ حذف</button>
+                <button class="btn btn-secondary btn-sm" onclick="cmd()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    var A=JSON.parse(localStorage.getItem('a')||'[]');
+    var V='daily', D=new Date(), W=gws(new Date()), MY=D.getFullYear(), MM=D.getMonth(), CP='add';
+
+    function fd(d){var y=d.getFullYear(),m=(d.getMonth()+1).toString().padStart(2,'0'),day=d.getDate().toString().padStart(2,'0');return y+'-'+m+'-'+day}
+    function fh(d){return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')}
+    function gws(d){var x=new Date(d);x.setDate(x.getDate()-x.getDay());x.setHours(0,0,0,0);return x}
+    function pl(p){return p==='high'?'🔴 عالية':p==='medium'?'🟠 متوسطة':'🟢 منخفضة'}
+    function pc(p){return'p-'+p}
+    function s(){localStorage.setItem('a',JSON.stringify(A))}
+    function ga(d){return A.filter(function(a){return a.date===d}).sort(function(a,b){return a.time.localeCompare(b.time)})}
+
+    function sp(p){
+        CP=p;
+        document.getElementById('pgAdd').style.display=p==='add'?'block':'none';
+        document.getElementById('pgCal').style.display=p==='cal'?'block':'none';
+        document.getElementById('navAdd').classList.toggle('active',p==='add');
+        document.getElementById('navCal').classList.toggle('active',p==='cal');
+        if(p==='cal')rc();
+    }
+
+    document.getElementById('headerDate').textContent=new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    setInterval(function(){document.getElementById('headerDate').textContent=new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})},60000);
+
+    document.getElementById('d').value=fd(new Date());
+    var nh=new Date();nh.setHours(nh.getHours()+1,0,0,0);
+    document.getElementById('tm').value=fh(nh);
+
+    function save(){
+        var t=document.getElementById('t').value.trim(),dd=document.getElementById('d').value,tt=document.getElementById('tm').value;
+        var pp=document.getElementById('p').value,ds=document.getElementById('desc').value.trim(),ei=document.getElementById('eid').value;
+        if(!t){alert('⚠️ الرجاء إدخال عنوان الموعد');return}
+        if(!dd){alert('⚠️ الرجاء اختيار التاريخ');return}
+        if(!tt){alert('⚠️ الرجاء اختيار الوقت');return}
+        if(ei){
+            var idx=A.findIndex(function(a){return a.id===ei});
+            if(idx!==-1)A[idx]={id:ei,title:t,date:dd,time:tt,priority:pp,desc:ds};
+            resetForm();
+        }else{
+            A.push({id:Date.now().toString(),title:t,date:dd,time:tt,priority:pp,desc:ds});
+        }
+        s();clf();ra();
+    }
+
+    function clf(){
+        document.getElementById('t').value='';document.getElementById('desc').value='';document.getElementById('p').value='medium';
+        document.getElementById('eid').value='';document.getElementById('formTitle').textContent='➕ إضافة موعد جديد';
+        document.getElementById('btnSave').textContent='💾 حفظ الموعد';document.getElementById('btnCancel').style.display='none';
+        document.getElementById('btnSave').className='btn btn-primary';
+        document.getElementById('d').value=fd(new Date());
+        var nh2=new Date();nh2.setHours(nh2.getHours()+1,0,0,0);
+        document.getElementById('tm').value=fh(nh2);
+    }
+
+    function resetForm(){document.getElementById('eid').value='';document.getElementById('formTitle').textContent='➕ إضافة موعد جديد';document.getElementById('btnSave').textContent='💾 حفظ الموعد';document.getElementById('btnCancel').style.display='none';document.getElementById('btnSave').className='btn btn-primary'}
+    function cancel(){clf();ra()}
+
+    function edit(id){
+        var a=A.find(function(x){return x.id===id});if(!a)return;
+        document.getElementById('t').value=a.title;document.getElementById('d').value=a.date;document.getElementById('tm').value=a.time;
+        document.getElementById('p').value=a.priority;document.getElementById('desc').value=a.desc||'';document.getElementById('eid').value=a.id;
+        document.getElementById('formTitle').textContent='✏️ تعديل الموعد';document.getElementById('btnSave').textContent='💾 تحديث الموعد';
+        document.getElementById('btnCancel').style.display='block';document.getElementById('btnSave').className='btn btn-warning';
+        sp('add');document.getElementById('pgAdd').scrollIntoView({behavior:'smooth'});cmd();
+    }
+
+    function del(id){
+        if(confirm('هل أنت متأكد من حذف هذا الموعد؟')){
+            A=A.filter(function(a){return a.id!==id});s();cmd();ra();
+            if(document.getElementById('eid').value===id)clf();
+        }
+    }
+
+    function om(id){
+        var a=A.find(function(x){return x.id===id});if(!a)return;
+        document.getElementById('mtitle').textContent=a.title;
+        document.getElementById('mcontent').innerHTML='<p><strong>📅 التاريخ:</strong> '+a.date+'</p><p><strong>⏰ الوقت:</strong> '+a.time+'</p><p><strong>الأهمية:</strong> '+pl(a.priority)+'</p>'+(a.desc?'<p><strong>📝 الوصف:</strong> '+a.desc+'</p>':'');
+        document.getElementById('me').onclick=function(){edit(a.id)};document.getElementById('md').onclick=function(){del(a.id)};
+        document.getElementById('mo').style.display='flex';
+    }
+    function cm(e){if(e.target===document.getElementById('mo'))cmd()}
+    function cmd(){document.getElementById('mo').style.display='none'}
+
+    function ru(){
+        var now=new Date(),ts=fd(now),up=A.filter(function(a){return a.date>=ts}).sort(function(a,b){return a.date.localeCompare(b.date)||a.time.localeCompare(b.time)}).slice(0,10);
+        var c=document.getElementById('upList');
+        if(up.length===0){c.innerHTML='<div class="empty">لا توجد مواعيد قادمة 🎉</div>';return}
+        c.innerHTML=up.map(function(a){return'<div class="up-item" onclick="om(\''+a.id+'\')"><div style="display:flex;align-items:center;gap:8px;min-width:0"><span class="chip '+pc(a.priority)+'">'+a.time+'</span><span style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+a.title+'</span></div><span style="font-size:10px;color:#a0aec0;white-space:nowrap">'+a.date+'</span></div>'}).join('')
+    }
+
+    function sv(v){V=v;document.querySelectorAll('.view-tab').forEach(function(t){t.classList.remove('active')});document.getElementById('tab'+v.charAt(0).toUpperCase()+v.slice(1)).classList.add('active');rc()}
+    function ra(){ru();if(CP==='cal')rc()}
+    function rc(){if(V==='daily')rd();else if(V==='weekly')rw();else rm()}
+
+    function rd(){
+        var ds=fd(D),da=ga(ds),h='<div class="calendar-nav"><button class="nav-btn" onclick="cd(-1)">◀</button><h2>'+D.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+'</h2><button class="nav-btn" onclick="cd(1)">▶</button><button class="btn-today" onclick="gt()">📍 اليوم</button></div>';
+        if(da.length===0){h+='<div class="empty"><span>📭</span>لا توجد مواعيد لهذا اليوم</div>'}
+        else{h+='<div>';for(var i=0;i<24;i++){var hs=i.toString().padStart(2,'0'),ha=da.filter(function(a){return parseInt(a.time.split(':')[0])===i});h+='<div class="hour-row"><div class="hour-label">'+hs+':00</div><div class="hour-slots">';ha.forEach(function(a){h+='<span class="chip '+pc(a.priority)+'" onclick="om(\''+a.id+'\')">'+a.time+' - '+a.title+'</span>'});h+='</div></div>'}h+='</div>'}
+        document.getElementById('calPanel').innerHTML=h
+    }
+    function cd(d){D.setDate(D.getDate()+d);D=new Date(D);rd()}
+    function gt(){D=new Date();W=gws(new Date());MY=D.getFullYear();MM=D.getMonth();rc()}
+
+    function rw(){
+        var s=new Date(W),e=new Date(s);e.setDate(e.getDate()+6);
+        var h='<div class="calendar-nav"><button class="nav-btn" onclick="cw(-1)">◀</button><h2>'+s.toLocaleDateString('ar-SA',{day:'numeric',month:'long'})+' - '+e.toLocaleDateString('ar-SA',{day:'numeric',month:'long',year:'numeric'})+'</h2><button class="nav-btn" onclick="cw(1)">▶</button><button class="btn-today" onclick="gt()">📍 اليوم</button></div><div class="weekly-scroll"><div class="weekly-grid"><div></div>';
+        var dn=['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],ts=fd(new Date());
+        for(var i=0;i<7;i++){var d=new Date(s);d.setDate(d.getDate()+i);var ds2=fd(d),it=ds2===ts;h+='<div class="weekly-header'+(it?' today':'')+'">'+dn[i]+'<br>'+d.getDate()+'/'+(d.getMonth()+1)+'</div>'}
+        for(var hh=0;hh<24;hh++){h+='<div class="weekly-time">'+(hh.toString().padStart(2,'0')+':00')+'</div>';for(var j=0;j<7;j++){var d2=new Date(s);d2.setDate(d2.getDate()+j);var ds3=fd(d2),it2=ds3===ts,ca=A.filter(function(a){return a.date===ds3&&parseInt(a.time.split(':')[0])===hh});h+='<div class="weekly-cell'+(it2?' today':'')+'">';ca.forEach(function(a){h+='<div class="w-appt '+pc(a.priority)+'" onclick="om(\''+a.id+'\')" title="'+a.title+'">'+a.time+' '+a.title+'</div>'});h+='</div>'}}
+        h+='</div></div>';document.getElementById('calPanel').innerHTML=h
+    }
+    function cw(d){W.setDate(W.getDate()+d*7);W=new Date(W);rw()}
+
+    function rm(){
+        var fd2=new Date(MY,MM,1),ld=new Date(MY,MM+1,0),td=ld.getDate(),sow=fd2.getDay(),ts=fd(new Date());
+        var mn=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+        var h='<div class="calendar-nav"><button class="nav-btn" onclick="cm2(-1)">◀</button><h2>'+mn[MM]+' '+MY+'</h2><button class="nav-btn" onclick="cm2(1)">▶</button><button class="btn-today" onclick="gt()">📍 اليوم</button></div><div class="monthly-grid">';
+        ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'].forEach(function(x){h+='<div class="monthly-day">'+x+'</div>'});
+        var plm=new Date(MY,MM,0).getDate();
+        for(var i=sow-1;i>=0;i--){h+='<div class="month-cell other"><div class="month-num">'+(plm-i)+'</div></div>'}
+        for(var day=1;day<=td;day++){var d=new Date(MY,MM,day),ds4=fd(d),it=ds4===ts,da=ga(ds4);h+='<div class="month-cell'+(it?' today':'')+'" onclick="odm(\''+ds4+'\')"><div class="month-num">'+day+'</div>';da.slice(0,2).forEach(function(a){h+='<div class="m-appt '+pc(a.priority)+'" onclick="event.stopPropagation();om(\''+a.id+'\')">'+a.time+' '+a.title+'</div>'});if(da.length>2)h+='<div class="m-more">+'+ (da.length-2)+'</div>';h+='</div>'}
+        var tc=sow+td,rem=tc%7===0?0:7-(tc%7);
+        for(var j=1;j<=rem;j++){h+='<div class="month-cell other"><div class="month-num">'+j+'</div></div>'}
+        h+='</div>';document.getElementById('calPanel').innerHTML=h
+    }
+    function odm(ds4){var p=ds4.split('-');D=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));sv('daily')}
+    function cm2(d){MM+=d;if(MM>11){MM=0;MY++}if(MM<0){MM=11;MY--}rm()}
+
+    ra();
+    </script>
+</body>
+</html>
